@@ -37,7 +37,14 @@ def index():
         {"name": "NOAA 19", "id": 33591}
     ]
     observer = {"lat": 29.7604, "lng": -95.3698, "alt": 12}
-    all_passes = [sat_pass for satellite in satellites for sat_pass in get_radio_passes(satellite["id"], observer["lat"], observer["lng"], observer["alt"], 10, 10, api_key).get("passes", [])]
+
+    all_passes = []
+    for satellite in satellites:
+        passes = get_radio_passes(satellite["id"], observer["lat"], observer["lng"], observer["alt"], 10, 10, api_key).get("passes", [])
+        for pass_data in passes:
+            pass_data["satname"] = satellite["name"]  # Adding satellite name to each pass
+            all_passes.append(pass_data)
+
     all_passes.sort(key=lambda x: x["startUTC"])
     satellite_positions = [get_current_position(satellite["id"], observer["lat"], observer["lng"], observer["alt"], api_key) for satellite in satellites]
     return render_template('index.html', next_pass=all_passes[0] if all_passes else None, all_passes=all_passes, satellite_positions=satellite_positions, elevation_color=elevation_color)
