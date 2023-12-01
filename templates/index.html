@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>NOAA Satellite Passes</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+    <style>
+        #map-container .map { 
+            height: 300px; 
+        }
+        .elevation-color {
+            color: {{ elevation_color(next_pass.maxEl) }};
+        }
+        .two-columns {
+            display: flex;
+            justify-content: space-between;
+        }
+        .column {
+            flex: 1;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4 text-center">NOAA Satellite Passes</h1>
+
+        {% if next_pass %}
+            <div class="text-center mb-4 elevation-color">
+                <h2>Next Pass</h2>
+                <p>
+                    <strong>{{ next_pass.name }}</strong>: 
+                    Start Time: {{ next_pass.startUTC | datetimeformat }},
+                    Max Elevation: {{ next_pass.maxEl }} degrees
+                </p>
+            </div>
+        {% endif %}
+
+        <div class="two-columns">
+            <div class="column">
+                <h2 class="mt-4">Current Satellite Positions</h2>
+                <div id="map-container">
+                    {% for position in satellite_positions %}
+                        <h3>{{ position.info.satname }}</h3>
+                        <div class="map" id="map-{{ position.info.satid }}"></div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="column">
+                <h2 class="mt-4">All Passes</h2>
+                <ul>
+                    {% for pass in all_passes %}
+                        <li style="color: {{ elevation_color(pass.maxEl) }}">
+                            <strong>{{ pass.name }}</strong> - 
+                            Start Time: {{ pass.startUTC | datetimeformat }},
+                            Max Elevation: {{ pass.maxEl }} degrees
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        var satellitePositions = {{ satellite_positions | tojson }};
+        satellitePositions.forEach(function(position) {
+            var mapId = 'map-' + position.info.satid;
+            var map = L.map(mapId).setView([position.positions[0].satlatitude, position.positions[0].satlongitude], 2);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            var latlng = [position.positions[0].satlatitude, position.positions[0].satlongitude];
+            L.marker(latlng).addTo(map).bindPopup(position.info.satname);
+        });
+    </script>
+</body>
+</html>
