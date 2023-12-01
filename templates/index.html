@@ -9,7 +9,7 @@
             height: 300px; 
         }
         .elevation-color {
-            color: {{ elevation_color(next_pass.maxEl) }};
+            color: {{ elevation_color(next_pass.maxEl) if next_pass else 'black' }};
         }
         .two-columns {
             display: flex;
@@ -19,6 +19,10 @@
             flex: 1;
             padding: 10px;
         }
+        #countdown {
+            font-weight: bold;
+            color: {{ elevation_color(next_pass.maxEl) if next_pass else 'black' }};
+        }
     </style>
 </head>
 <body>
@@ -26,12 +30,13 @@
         <h1 class="mb-4 text-center">NOAA Satellite Passes</h1>
 
         {% if next_pass %}
-            <div class="text-center mb-4 elevation-color">
+            <div class="text-center mb-4">
                 <h2>Next Pass</h2>
                 <p>
                     <strong>{{ next_pass.name }}</strong>: 
                     Start Time: {{ next_pass.startUTC | datetimeformat }},
                     Max Elevation: {{ next_pass.maxEl }} degrees
+                    <span id="countdown" class="elevation-color"></span>
                 </p>
             </div>
         {% endif %}
@@ -51,7 +56,7 @@
                 <ul>
                     {% for pass in all_passes %}
                         <li style="color: {{ elevation_color(pass.maxEl) }}">
-                            <strong>{{ pass.name }}</strong> - 
+                            <strong>{{ pass.satname }}</strong> - 
                             Start Time: {{ pass.startUTC | datetimeformat }},
                             Max Elevation: {{ pass.maxEl }} degrees
                         </li>
@@ -78,6 +83,23 @@
             var latlng = [position.positions[0].satlatitude, position.positions[0].satlongitude];
             L.marker(latlng).addTo(map).bindPopup(position.info.satname);
         });
+
+        // Countdown timer script
+        {% if next_pass %}
+            var countDownDate = new Date({{ next_pass.startUTC }} * 1000).getTime();
+            var countdownTimer = setInterval(function() {
+                var now = new Date().getTime();
+                var distance = countDownDate - now;
+                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                document.getElementById("countdown").innerHTML = " - Countdown: " + hours + "h " + minutes + "m " + seconds + "s ";
+                if (distance < 0) {
+                    clearInterval(countdownTimer);
+                    document.getElementById("countdown").innerHTML = " - EXPIRED";
+                }
+            }, 1000);
+        {% endif %}
     </script>
 </body>
 </html>
