@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>NOAA Satellite Passes</title>
+    <title>NOAA Houston Satellite Passes</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
     <style>
@@ -27,15 +27,16 @@
 </head>
 <body>
     <div class="container mt-4">
-        <h1 class="mb-4 text-center">NOAA Satellite Passes</h1>
+        <h1 class="mb-4 text-center">NOAA Houston, TX Satellite Passes</h1>
 
         {% if next_pass %}
             <div class="text-center mb-4">
                 <h2>Next Pass</h2>
                 <p>
                     <strong>{{ next_pass.satname }}</strong>: 
+                    Frequency: {{ next_pass.frequency }},
                     Start Time: {{ next_pass.startUTC | datetimeformat }},
-                    Max Elevation: {{ next_pass.maxEl }} degrees
+                    Max Elevation: {{ next_pass.maxEl }} degrees,
                     <span id="countdown" class="elevation-color"></span>
                 </p>
             </div>
@@ -57,6 +58,7 @@
                     {% for pass in all_passes %}
                         <li style="color: {{ elevation_color(pass.maxEl) }}">
                             <strong>{{ pass.satname }}</strong> - 
+                            Frequency: {{ pass.frequency }},
                             Start Time: {{ pass.startUTC | datetimeformat }},
                             Max Elevation: {{ pass.maxEl }} degrees
                         </li>
@@ -74,7 +76,7 @@
         var satellitePositions = {{ satellite_positions | tojson }};
         satellitePositions.forEach(function(position) {
             var mapId = 'map-' + position.info.satid;
-            var map = L.map(mapId).setView([position.positions[0].satlatitude, position.positions[0].satlongitude], 2);
+            var map = L.map(mapId).setView([position.positions[0].satlatitude, position.positions[0].satlongitude], 1);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '© OpenStreetMap contributors'

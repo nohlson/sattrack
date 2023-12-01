@@ -32,9 +32,9 @@ def elevation_color(elevation):
 def index():
     api_key = "LLHTCT-83W7RG-EGDBFH-562H"
     satellites = [
-        {"name": "NOAA 18", "id": 28654},
-        {"name": "NOAA 15", "id": 25338},
-        {"name": "NOAA 19", "id": 33591}
+        {"name": "NOAA 18", "id": 28654, "frequency": "137.9125 MHz"},
+        {"name": "NOAA 15", "id": 25338, "frequency": "137.6200 MHz"},
+        {"name": "NOAA 19", "id": 33591, "frequency": "137.1000 MHz"}
     ]
     observer = {"lat": 29.7604, "lng": -95.3698, "alt": 12}
 
@@ -42,7 +42,8 @@ def index():
     for satellite in satellites:
         passes = get_radio_passes(satellite["id"], observer["lat"], observer["lng"], observer["alt"], 10, 10, api_key).get("passes", [])
         for pass_data in passes:
-            pass_data["satname"] = satellite["name"]  # Adding satellite name to each pass
+            pass_data["satname"] = satellite["name"]
+            pass_data["frequency"] = satellite["frequency"]  # Adding frequency
             all_passes.append(pass_data)
 
     all_passes.sort(key=lambda x: x["startUTC"])
